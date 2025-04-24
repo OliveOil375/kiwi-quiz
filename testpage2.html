@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DigiTech Kiwi Bird Quiz</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #eef7ed;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .quiz-container {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      width: 90%;
+      max-width: 600px;
+    }
+    h1 {
+      color: #306230;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      background-color: #3c803c;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #316b31;
+    }
+    .feedback {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    .score {
+      font-size: 12px;
+      color: #555;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <h1>NZ Kiwi Bird Quiz</h1>
+
+  <div id="start-screen">
+    <p>Enter your name to begin:</p>
+    <input type="text" id="nameInput" placeholder="Your name...">
+    <button onclick="showWelcome()">Continue</button>
+  </div>
+
+  <div id="welcome-screen" style="display: none;">
+    <p id="welcomeMessage"></p>
+    <button onclick="startQuiz()">Start Quiz</button>
+  </div>
+
+  <div id="quiz-screen" style="display: none;">
+    <div id="questionNumber"></div>
+    <div id="quiz"></div>
+    <input type="text" id="answer" placeholder="Type your answer here..." maxlength="30">
+    <button id="submitButton" onclick="handleButton()">Submit</button>
+    <div class="feedback" id="feedback"></div>
+    <div class="score" id="currentScore"></div>
+  </div>
+</div>
+
+<script>
+  let quizQuestions = [
+    { question: "How many species of Kiwi birds are native to New Zealand?\n(a) 3\n(b) 5\n(c) 7\n(d) 6", 
+      answers: ["b", "5", "five"] },
+    { question: "True or False: Kiwis can fly.", 
+      answers: ["false", "f", "x", "no", "nuh"] },
+    { question: "Which of these Kiwi species is the smallest?\n(a) Great Spotted Kiwi\n(b) Little Spotted Kiwi\n(c) Okarito Kiwi\n(d) North Island Brown Kiwi", 
+      answers: ["b", "little spotted kiwi"] },
+    { question: "Where do most Kiwi birds live?\n(a) Forests\n(b) Deserts\n(c) Mountains\n(d) Wetlands", 
+      answers: ["a", "forests", "forest"] },
+    { question: "True or False: Kiwi birds lay the smallest eggs in relation to their body size.", 
+      answers: ["false", "f", "x", "no", "nuh"] },
+    { question: "What do Kiwi birds use to find food?\n(a) Their eyesight\n(b) Their beak and sense of smell\n(c) Their wings\n(d) Their hearing", 
+      answers: ["b", "their beak and sense of smell", "there beak and sense of smell"] },
+    { question: "Kiwi birds are mostly...\n(a) Nocturnal\n(b) Diurnal\n(c) Migratory\n(d) Aquatic", 
+      answers: ["a", "nocturnal"] },
+    { question: "True or False: All Kiwis are endangered.", 
+      answers: ["true", "t", "yes", "correct"] }
+  ];
+
+  let currentQuestion = 0;
+  let score = 0;
+  let userName = "";
+  let answered = false;
+
+  function showWelcome() {
+    let name = document.getElementById("nameInput").value.trim();
+    if (name === "") {
+      alert("Please enter your name.");
+      return;
+    }
+    userName = name;
+    document.getElementById("start-screen").style.display = "none";
+    document.getElementById("welcomeMessage").innerText = `Welcome ${userName} to our Kiwi Bird Quiz!`;
+    document.getElementById("welcome-screen").style.display = "block";
+  }
+
+  function startQuiz() {
+    document.getElementById("welcome-screen").style.display = "none";
+    document.getElementById("quiz-screen").style.display = "block";
+    showQuestion();
+  }
+
+  function showQuestion() {
+    document.getElementById("questionNumber").innerText = "Question " + (currentQuestion + 1);
+    document.getElementById("quiz").innerText = quizQuestions[currentQuestion].question;
+    document.getElementById("answer").value = "";
+    document.getElementById("feedback").innerText = "";
+    document.getElementById("answer").style.display = "block";
+    document.getElementById("submitButton").innerText = "Submit";
+    answered = false;
+    updateScore();
+  }
+
+  function handleButton() {
+    if (!answered) {
+      submitAnswer();
+    } else {
+      nextQuestion();
+    }
+  }
+
+  function submitAnswer() {
+    let userAnswer = document.getElementById("answer").value.trim().toLowerCase();
+    let correctAnswers = quizQuestions[currentQuestion].answers.map(ans => ans.toLowerCase().trim());
+    let feedback = document.getElementById("feedback");
+
+    if (userAnswer === "") {
+      feedback.innerText = "❗ Please enter your answer.";
+      return;
+    }
+
+    let isCorrect = correctAnswers.some(ans => userAnswer.includes(ans));
+    
+    if (isCorrect) {
+      score++;
+      feedback.innerText = "✅ Correct! " + getFeedbackNote(currentQuestion);
+    } else {
+      feedback.innerText = "❌ Incorrect. " + getFeedbackNote(currentQuestion);
+    }
+
+    answered = true;
+    document.getElementById("submitButton").innerText = "Next Question";
+    updateScore();
+  }
+
+  function nextQuestion() {
+    currentQuestion++;
+    if (currentQuestion < quizQuestions.length) {
+      showQuestion();
+    } else {
+      showFinalScore();
+    }
+  }
+
+  function getFeedbackNote(qIndex) {
+    let note = "";
+    switch (qIndex) {
+      case 0: note = "There are 5 different Kiwi species in New Zealand like the North Island Brown Kiwi, Okarito Kiwi, and Little Spotted Kiwi."; break;
+      case 1: note = "Kiwis can’t fly because their wings are so small, and they don’t have strong chest muscles like flying birds."; break;
+      case 2: note = "The Little Spotted Kiwi is the smallest species. It weighs less than 1kg and is mostly found on small islands."; break;
+      case 3: note = "Most Kiwis live in native forests. They love dark, quiet places with lots of insects and fallen leaves."; break;
+      case 4: note = "Kiwi birds actually lay the biggest egg for their body size — up to 20% of their body weight!"; break;
+      case 5: note = "They use their long beaks and the nostrils at the end to sniff out bugs and worms underground."; break;
+      case 6: note = "Kiwis are nocturnal, which means they sleep during the day and search for food at night."; break;
+      case 7: note = "Yes, all five Kiwi species are endangered. They face danger from predators like stoats and habitat destruction."; break;
+    }
+    return note;
+  }
+
+  function updateScore() {
+    document.getElementById("currentScore").innerText = "Score: " + score + " out of " + quizQuestions.length;
+  }
+
+  function showFinalScore() {
+    const result = document.getElementById("quiz");
+    const passed = score >= quizQuestions.length / 2;
+
+    result.innerHTML = `
+      <h2>🎉 Quiz Complete!</h2>
+      <p><strong>${userName}</strong>! You scored <strong>${score}</strong> out of <strong>${quizQuestions.length}</strong>.</p>
+      <p>${passed ? "✅ <strong>You passed the quiz! SUCH A PRO!!!</strong>" : "❌ <strong>You didn’t pass. That’s okay, you can always try again!</strong>"}</p>
+    `;
+
+    document.getElementById("questionNumber").innerText = "";
+    document.getElementById("feedback").style.display = "none";
+    document.getElementById("currentScore").style.display = "none";
+    document.getElementById("answer").style.display = "none";
+    document.getElementById("submitButton").style.display = "none";
+  }
+</script>
+
+</body>
+</html>
